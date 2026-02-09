@@ -1,25 +1,43 @@
 #!/usr/bin/env python3
 """
-Port Scanner - Starter Template for Students
+Port Scanner - ZACHARY BAUMAN
 Assignment 2: Network Security
-
-This is a STARTER TEMPLATE to help you get started.
-You should expand and improve upon this basic implementation.
-
-TODO for students:
-1. Implement multi-threading for faster scans
-2. Add banner grabbing to detect services
-3. Add support for CIDR notation (e.g., 192.168.1.0/24)
-4. Add different scan types (SYN scan, UDP scan, etc.)
-5. Add output formatting (JSON, CSV, etc.)
-6. Implement timeout and error handling
-7. Add progress indicators
-8. Add service fingerprinting
 """
 
 import socket
 import sys
+import json
+import csv
+import time
 
+# OUTPUT FUNCTIONS
+def out_json(results, filename):
+    try:
+        with open(filename, 'w') as f:
+            json.dump(results, f, indent=4)
+        print(f"[+] Results saved to {filename}")
+
+    except IOError as e:
+        print(f"[!] Error saving JSON: {e}")
+
+def out_csv(results, filename):
+    try:
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["IP", "Port", "State", "Service_Banner", "Latency_Sec"]) 
+            
+            for ip, data in results.items():
+                for item in data:
+                    writer.writerow([
+                        ip, 
+                        item['port'], 
+                        item['state'],   # Uses the real data field
+                        item['banner'], 
+                        item['latency']
+                    ])
+        print(f"[+] Results saved to {filename}")
+    except IOError as e:
+        print(f"[!] Error saving CSV: {e}")
 
 def scan_port(target, port, timeout=1.0):
     """
@@ -34,19 +52,46 @@ def scan_port(target, port, timeout=1.0):
         bool: True if port is open, False otherwise
     """
     try:
-        # TODO: Create a socket
-        # TODO: Set timeout
-        # TODO: Try to connect to target:port
-        # TODO: Close the socket
-        # TODO: Return True if connection successful
+        # CREATE SOCKET AS IPv4 AND TCP PROTOCOL
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            start_time = time.time()
 
-        pass  # Remove this and implement
+            result = sock.connect_ex((target, port))
+
+            end_time = time.time()
+            latency = end_time - start_time
+
+            # RESULT IS ZERO IF SUCCESS ELSE ERROR CODE
+            if result == 0:
+                response = "UNKNOWN"
+                
+                try:
+                    # DUMMY REQUEST FOR RESPONSE
+                    sock.send(b'HEAD / HTTP/1.0\r\n\r\n')
+                    # READ 32b of the data
+                    response = sock.recv(1024).decode(errors='ignore').strip()
+                except:
+                    pass # NO RESPONSE FROM OPEN SERVICE
+                
+                sock.close()
+                
+                return{
+                    "port": port,
+                    "state": "open",
+                    "banner": response,
+                    "latency": round(latency, 4)
+                }
+            
+            sock.close()
+
 
     except (socket.timeout, ConnectionRefusedError, OSError):
-        return False
+        pass
+    return None
 
 
-def scan_range(target, start_port, end_port):
+def scan_range(target, start_port, end_port, open_ports, timeout):
     """
     Scan a range of ports on the target host
 
@@ -58,50 +103,116 @@ def scan_range(target, start_port, end_port):
     Returns:
         list: List of open ports
     """
-    open_ports = []
 
     print(f"[*] Scanning {target} from port {start_port} to {end_port}")
-    print(f"[*] This may take a while...")
-
-    # TODO: Implement the scanning logic
-    # Hint: Loop through port range and call scan_port()
-    # Hint: Consider using threading for better performance
 
     for port in range(start_port, end_port + 1):
-        # TODO: Scan this port
-        # TODO: If open, add to open_ports list
-        # TODO: Print progress (optional)
-        pass  # Remove this and implement
+        data = scan_port(target, port, timeout)
+        if data:
+            # Meets "Display results showing port number, state, and timing"
+            print(f"[+] {target}:{data['port']} | State: {data['state'].upper()} | Service: {data['banner']} | Time: {data['latency']}s")
+            open_ports.append(data)
+
+    # WE ARE RETURNING THROUGH THE ARGUMENT TO BE ABLE TO THREAD AND RETURN THE OPEN PORTS
+
+
+import threading
+
+def threaded_scan_range(target, start_port, end_port, thread_count, timeout):
+    open_ports = [] 
+    threads = []
+
+
+    total_ports = end_port - start_port + 1
+
+    if thread_count > total_ports:
+        thread_count = total_ports
+
+    chunk_size = total_ports // thread_count
+    
+    print(f"[*] Scanning {total_ports} ports using {thread_count} threads (~{chunk_size} ports/thread)")
+
+    for i in range(thread_count):
+
+        chunk_start = start_port + (i * chunk_size) # RANGE FOR THAT THREAD
+
+        if i == thread_count - 1:
+            chunk_end = end_port
+        else:
+            chunk_end = chunk_start + chunk_size - 1
+
+        t = threading.Thread(target=scan_range, args=(target, chunk_start, chunk_end, open_ports, timeout))
+        threads.append(t)
+        t.start()
+
+    # WAIT FOR ALL THREADS TO COMPLETE
+    for t in threads:
+        t.join()
+
 
     return open_ports
 
+import argparse
+import ipaddress
 
 def main():
     """Main function"""
-    # TODO: Parse command-line arguments
-    # TODO: Validate inputs
-    # TODO: Call scan_range()
-    # TODO: Display results
 
-    # Example usage (you should improve this):
-    if len(sys.argv) < 2:
-        print("Usage: python3 port_scanner_template.py <target>")
-        print("Example: python3 port_scanner_template.py 172.20.0.10")
+    parser = argparse.ArgumentParser(description="PYTHON PORT SCANNER")
+
+    # arguments
+    parser.add_argument("--target", required=True, help="Target IP")
+    parser.add_argument("--ports", default="1-1000", help="Port range. Default: 1-1000")
+    parser.add_argument("--threads", type=int, default=10, help="Number of threads. Default: 10")
+    parser.add_argument("--timeout", type=float, default=1.0, help="Socket timeout (s)") 
+    parser.add_argument("--output", help="Output file CSV OR JSON FILE OUTPUT (e.g. results.json or results.csv)")
+
+    args = parser.parse_args()
+
+    try:
+        if "-" in args.ports:
+            start_port, end_port = map(int, args.ports.split("-"))  # SPLIT INTO START/END
+        else: # ONLY ONE PORT
+            start_port = int(args.ports)
+            end_port = int(args.ports)
+
+    except ValueError:
+        print("[!] Invalid port format.")
         sys.exit(1)
+    
+    targets = []
+    try:
+        network = ipaddress.ip_network(args.target, strict=False)
+        for ip in network.hosts():
+            targets.append(str(ip))
+    except ValueError:
+        try:
+            targets.append(socket.gethostbyname(args.target))
+        except socket.gaierror:
+            print(f"[!] Error: Could not resolve hostname '{args.target}'")
+            sys.exit(1)
 
-    target = sys.argv[1]
-    start_port = 1
-    end_port = 1024  # Scan first 1024 ports by default
+    print(f"[*] Found {len(targets)} host to scan.")
 
-    print(f"[*] Starting port scan on {target}")
+    final_results = {}
 
-    open_ports = scan_range(target, start_port, end_port)
+    for target in targets:
+        print(f"--- Scanning {target} ---")
+        final_results[target] = threaded_scan_range(target, start_port, end_port, args.threads, args.timeout)
 
-    print(f"\n[+] Scan complete!")
-    print(f"[+] Found {len(open_ports)} open ports:")
-    for port in open_ports:
-        print(f"    Port {port}: open")
+    print("\n[+] Scan Complete.")
 
+    if args.output:
+        if args.output.endswith(".json"):
+            out_json(final_results, args.output)
+        elif args.output.endswith(".csv"):
+            out_csv(final_results, args.output)
+        else:
+            print("[!] UNKNOWN FILE TYPE. USE .json or .csv")
+    else:
+        # Default PRINT TO THE SCREEN
+        print("Summary:")
+        print(json.dumps(final_results, indent=4))
 
 if __name__ == "__main__":
     main()
