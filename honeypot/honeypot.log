@@ -1,0 +1,25 @@
+2026-02-10 04:39:29,375 - SSH-Honeypot - Generating new host key...
+2026-02-10 04:39:29,474 - SSH-Honeypot - Starting SSH Honeypot on port 2222...
+2026-02-10 04:39:33,340 - SSH-Honeypot - CONNECTION DETECTED from 127.0.0.1
+2026-02-10 04:39:33,342 - paramiko.transport - Connected (version 2.0, client OpenSSH_10.0p2)
+2026-02-10 04:40:12,010 - SSH-Honeypot - Starting SSH Honeypot on port 2222...
+2026-02-10 04:40:21,085 - SSH-Honeypot - CONNECTION DETECTED from 127.0.0.1
+2026-02-10 04:40:21,086 - paramiko.transport - Connected (version 2.0, client OpenSSH_10.0p2)
+2026-02-10 04:41:56,448 - SSH-Honeypot - Starting SSH Honeypot on port 2222...
+2026-02-10 04:42:01,382 - SSH-Honeypot - CONNECTION DETECTED from 127.0.0.1
+2026-02-10 04:42:01,384 - paramiko.transport - Connected (version 2.0, client OpenSSH_10.0p2)
+2026-02-10 04:42:03,741 - paramiko.transport - Auth rejected (none).
+2026-02-10 04:42:04,909 - SSH-Honeypot - LOGIN ATTEMPT - IP: 127.0.0.1 | User: root | Pass: 123
+2026-02-10 04:42:04,910 - paramiko.transport - Auth granted (password).
+2026-02-10 04:42:08,231 - SSH-Honeypot - COMMAND EXECUTED - IP: 127.0.0.1 | Cmd: ls
+2026-02-10 04:42:09,509 - SSH-Honeypot - COMMAND EXECUTED - IP: 127.0.0.1 | Cmd: pwd
+2026-02-10 04:42:11,581 - SSH-Honeypot - COMMAND EXECUTED - IP: 127.0.0.1 | Cmd: whoami
+2026-02-10 04:43:05,184 - SSH-Honeypot - COMMAND EXECUTED - IP: 127.0.0.1 | Cmd: [A[Bquit
+2026-02-10 04:43:06,245 - SSH-Honeypot - Connection closed for 127.0.0.1
+2026-02-10 04:43:14,067 - SSH-Honeypot - CONNECTION DETECTED from 127.0.0.1
+2026-02-10 04:43:14,069 - paramiko.transport - Connected (version 2.0, client OpenSSH_10.0p2)
+2026-02-10 04:43:14,081 - paramiko.transport - Auth rejected (none).
+2026-02-10 04:43:15,627 - SSH-Honeypot - LOGIN ATTEMPT - IP: 127.0.0.1 | User: root | Pass: 123
+2026-02-10 04:43:15,627 - paramiko.transport - Auth granted (password).
+2026-02-10 04:43:17,232 - SSH-Honeypot - COMMAND EXECUTED - IP: 127.0.0.1 | Cmd: quit
+2026-02-10 04:43:18,366 - SSH-Honeypot - Connection closed for 127.0.0.1

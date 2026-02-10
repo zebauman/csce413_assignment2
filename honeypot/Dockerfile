@@ -1,12 +1,15 @@
-FROM python:3.11-slim
+FROM python:3.9-slim
+
+RUN pip install paramiko
 
 WORKDIR /app
 
+# Copy files
 COPY honeypot.py .
+COPY README.md .
 
 # Create logs directory
 RUN mkdir -p /app/logs
 
-EXPOSE 22
-
-CMD ["python", "-u", "honeypot.py"]
+# Run the honeypot
+CMD ["python3", "honeypot.py"]

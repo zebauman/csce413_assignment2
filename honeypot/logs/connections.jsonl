@@ -1,3 +1,5 @@
 {"timestamp": "2026-01-05T15:47:39.322396", "event": "connection", "client_ip": "172.20.0.1", "client_port": 40642}
 {"timestamp": "2026-01-05T15:47:47.059106", "event": "connection", "client_ip": "172.20.0.1", "client_port": 39300}
 {"timestamp": "2026-01-05T15:58:47.101147", "event": "connection", "client_ip": "172.20.0.1", "client_port": 58506}
+{"timestamp": "2026-02-10T05:03:37.315912", "event": "connection", "client_ip": "127.0.0.1", "client_port": 43348}
+{"timestamp": "2026-02-10T05:06:09.304795", "event": "connection", "client_ip": "127.0.0.1", "client_port": 45766}
