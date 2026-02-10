@@ -52,7 +52,7 @@ def check_protected_port(target, protected_port):
             print(f"SUCCESS PORT {protected_port} IS OPEN")
             return True
         else:
-            print(f"[FAILURE PORT {protected_port} is INACCESSIBLE (ERR: {res})")
+            print(f"FAILURE PORT {protected_port} is INACCESSIBLE (ERR: {res})")
     except OSError as e:
         print(f"[-] Could not connect to protected port {protected_port} (err: {e})")
 
