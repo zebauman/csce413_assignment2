@@ -15,10 +15,10 @@ def out_json(results, filename):
     try:
         with open(filename, 'w') as f:
             json.dump(results, f, indent=4)
-        print(f"[+] Results saved to {filename}")
+        print(f"Results saved to {filename}")
 
     except IOError as e:
-        print(f"[!] Error saving JSON: {e}")
+        print(f"Error saving JSON: {e}")
 
 def out_csv(results, filename):
     try:
@@ -35,9 +35,9 @@ def out_csv(results, filename):
                         item['banner'], 
                         item['latency']
                     ])
-        print(f"[+] Results saved to {filename}")
+        print(f"Results saved to {filename}")
     except IOError as e:
-        print(f"[!] Error saving CSV: {e}")
+        print(f"Error saving CSV: {e}")
 
 def scan_port(target, port, timeout=1.0):
     """
@@ -110,7 +110,7 @@ def scan_range(target, start_port, end_port, open_ports, timeout):
         data = scan_port(target, port, timeout)
         if data:
             # Meets "Display results showing port number, state, and timing"
-            print(f"[+] {target}:{data['port']} | State: {data['state'].upper()} | Service: {data['banner']} | Time: {data['latency']}s")
+            print(f"{target}:{data['port']} | State: {data['state'].upper()} | Service: {data['banner']} | Time: {data['latency']}s")
             open_ports.append(data)
 
     # WE ARE RETURNING THROUGH THE ARGUMENT TO BE ABLE TO THREAD AND RETURN THE OPEN PORTS
@@ -177,7 +177,7 @@ def main():
             end_port = int(args.ports)
 
     except ValueError:
-        print("[!] Invalid port format.")
+        print("Invalid port format.")
         sys.exit(1)
     
     targets = []
@@ -189,7 +189,7 @@ def main():
         try:
             targets.append(socket.gethostbyname(args.target))
         except socket.gaierror:
-            print(f"[!] Error: Could not resolve hostname '{args.target}'")
+            print(f"Error: Could not resolve hostname '{args.target}'")
             sys.exit(1)
 
     print(f"[*] Found {len(targets)} host to scan.")
@@ -200,7 +200,7 @@ def main():
         print(f"--- Scanning {target} ---")
         final_results[target] = threaded_scan_range(target, start_port, end_port, args.threads, args.timeout)
 
-    print("\n[+] Scan Complete.")
+    print("\n Scan Complete.")
 
     if args.output:
         if args.output.endswith(".json"):
@@ -208,7 +208,7 @@ def main():
         elif args.output.endswith(".csv"):
             out_csv(final_results, args.output)
         else:
-            print("[!] UNKNOWN FILE TYPE. USE .json or .csv")
+            print("UNKNOWN FILE TYPE. USE .json or .csv")
     else:
         # Default PRINT TO THE SCREEN
         print("Summary:")

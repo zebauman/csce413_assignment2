@@ -12,14 +12,21 @@ DEFAULT_DELAY = 0.3
 
 def send_knock(target, port, delay):
     """Send a single knock to the target port."""
-    # TODO: Choose UDP or TCP knocks based on your design.
-    # Example TCP knock stub:
     try:
-        with socket.create_connection((target, port), timeout=1.0):
-            pass
-    except OSError:
-        pass
-    time.sleep(delay)
+        # USE UDP SOCKETS BECAUSE WE DON'T NEED A RESPONSE AND ONLY NEED TO HIT THE FIREWALL
+        # TCP REQUIRES A RESPONSE (ACK) THAT WILL NEVER COME -> SLOW DOWN THE KNOCKING PROCESS
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(1)
+
+        # THE PAYLOAD THAT'S SENT IS IRRELIEVENT -> SOMETHING JUST NEEDS TO PING THE CORRECT PORTS
+        sock.sendto(b'KNOCK', (target, int(port)))
+        sock.close()
+
+    except Exception as e:
+        print(f"ERROR KNOCKING FOR {port}: {e}")
+
+    time.sleep(delay)   # THERE NEEDS TO BE A SMALL DELAY BECAUSE WITH UDP THE PACKETS MAY NOT ARRIVE IN ORDER (NO ACKS) SO A SMALL DELAY ENSURE ORDERNESS TO A VERY HIGH DEGREE
 
 
 def perform_knock_sequence(target, sequence, delay):
@@ -31,11 +38,23 @@ def perform_knock_sequence(target, sequence, delay):
 def check_protected_port(target, protected_port):
     """Try connecting to the protected port after knocking."""
     # TODO: Replace with real service connection if needed.
+    print(f"CHECKING CONNECTION FOR {target}:{protected_port}")
+
     try:
-        with socket.create_connection((target, protected_port), timeout=2.0):
-            print(f"[+] Connected to protected port {protected_port}")
-    except OSError:
-        print(f"[-] Could not connect to protected port {protected_port}")
+        # USE TCP TO ACTUALLY ATTEMPT TO CONNECT TO THE PROTECTED PORT WITH SSH
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2.0)
+        res = sock.connect_ex((target, protected_port))
+        sock.close()
+
+        if res == 0:
+            print(f"SUCCESS PORT {protected_port} IS OPEN")
+            return True
+        else:
+            print(f"[FAILURE PORT {protected_port} is INACCESSIBLE (ERR: {res})")
+    except OSError as e:
+        print(f"[-] Could not connect to protected port {protected_port} (err: {e})")
 
 
 def parse_args():
